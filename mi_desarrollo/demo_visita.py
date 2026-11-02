@@ -5,50 +5,39 @@ Casos de uso pensados para mostrar en el aula, usando SOLO la API permitida
 nuevas al robot: combina las que ya estan en la lista blanca, asi que lo que
 anda aca anda igual en el laboratorio fisico.
 
+Ademas del menu, el robot se puede manejar POR VOZ (opcion 'v' del menu): se
+le dice "robot, avanza un metro", "robot, baila", "robot, juguemos"... Los dos
+modos conviven: desde el modo voz se vuelve al menu diciendo "robot, menu".
+
 Uso (con el simulador ABIERTO y el G1 elegido):
     python3 mi_desarrollo/demo_visita.py          # menu interactivo
     python3 mi_desarrollo/demo_visita.py todo     # corre toda la secuencia
     python3 mi_desarrollo/demo_visita.py 2        # corre un solo caso
+    python3 mi_desarrollo/demo_visita.py voz      # arranca en modo voz
 
 Todas las velocidades y tiempos se validan contra el perfil de la materia con
 que se abrio el simulador. Los movimientos largos se parten en ordenes cortas
 para no superar la duracion maxima por comando.
+
+Archivos de la demo (todos en mi_desarrollo/):
+    utilidades.py   moverse en metros/grados y hablar
+    habilidades.py  figuras nuevas (zigzag, ocho, cangrejo...) y control manual
+    juego_ppt.py    piedra, papel o tijera (teclado, camara o voz)
+    vision_ppt.py   la camara: detecta la mano con MediaPipe
+    voz.py          el microfono: entiende ordenes en castellano con Vosk
 """
 
 import math
 import sys
 
+import juego_ppt
+import voz
+from habilidades import HABILIDADES, caso_control_manual
 from robot import ErrorDeSeguridad, NoHaySimulador, Robot
-
-VEL_LINEAL = 0.20    # m/s   (<= techo de 0.25)
-VEL_ANGULAR = 0.50   # rad/s (<= techo de 1.0)
-
-
-# ---------------------------------------------------------------- utilidades
-def _en_tramos(robot, accion, velocidad, tiempo_total):
-    """Ejecuta 'accion' en tramos que respetan la duracion maxima del perfil."""
-    tope = robot.perfil.duracion_max
-    restante = tiempo_total
-    while restante > 1e-6:
-        tramo = min(tope, restante)
-        accion(velocidad=velocidad, tiempo=tramo)
-        restante -= tramo
-
-
-def avanzar_metros(robot, metros):
-    """distancia = v x t  ->  t = distancia / v. Negativo = retrocede."""
-    v = VEL_LINEAL if metros >= 0 else -VEL_LINEAL
-    _en_tramos(robot, robot.avanzar, v, abs(metros) / VEL_LINEAL)
-
-
-def girar_grados(robot, grados):
-    """Positivo = izquierda, negativo = derecha."""
-    w = VEL_ANGULAR if grados >= 0 else -VEL_ANGULAR
-    _en_tramos(robot, robot.girar, w, math.radians(abs(grados)) / VEL_ANGULAR)
-
-
-def anunciar(texto):
-    print(f"\n>>> {texto}")
+from utilidades import (VEL_ANGULAR, VEL_LINEAL, anunciar, avanzar_metros,  # noqa: F401
+                        costado_metros, decir, en_tramos as _en_tramos,
+                        girar_grados)
+from vision_ppt import CamaraNoDisponible
 
 
 # ----------------------------------------------------------- casos de uso
@@ -156,108 +145,21 @@ def caso_moonwalk(robot):
 
 
 # ------------------------------------------------- piedra, papel o tijera
-JUGADAS = ("piedra", "papel", "tijera")
-LE_GANA_A = {"piedra": "tijera", "papel": "piedra", "tijera": "papel"}
-DIBUJOS = {
-    "piedra": ["    _______   ", "---'   ____)  ", "      (_____) ",
-               "      (_____) ", "      (____)  ", "---.__(___)   "],
-    "papel":  ["    _______        ", "---'   ____)____   ", "           ______) ",
-               "          _______) ", "         _______)  ", "---.__________)    "],
-    "tijera": ["    _______        ", "---'   ____)____   ", "           ______) ",
-               "        __________)", "      (____)       ", "---.__(___)        "],
-}
-
-
-def _voz_en_castellano():
-    """Una voz en castellano de macOS (comando 'say'), o None."""
-    import shutil
-    import subprocess
-    if not shutil.which("say"):
-        return None
-    try:
-        voces = subprocess.run(["say", "-v", "?"], capture_output=True,
-                               text=True, timeout=5).stdout.splitlines()
-    except Exception:                                      # noqa: BLE001
-        return None
-    for region in ("es_AR", "es_MX", "es_ES", "es_"):
-        for linea in voces:
-            if region in linea:
-                return linea.split(region)[0].strip().split("  ")[0].strip()
-    return None
-
-
-_VOZ = _voz_en_castellano()
-
-
-def decir(texto):
-    """Lo dice en voz alta si hay voz en castellano (macOS); si no, solo imprime."""
-    print(f"   🔊 {texto}")
-    if _VOZ:
-        import subprocess
-        try:
-            subprocess.run(["say", "-v", _VOZ, texto], timeout=10)
-        except Exception:                                  # noqa: BLE001
-            pass
-
-
-def _mostrar(jugada_alumno, jugada_robot):
-    print()
-    print(f"   {'VOS: ' + jugada_alumno.upper():<24}ROBOT: {jugada_robot.upper()}")
-    izq, der = DIBUJOS[jugada_alumno], DIBUJOS[jugada_robot]
-    ancho = max(len(linea) for linea in der)
-    espejo = str.maketrans("()", ")(")
-    for a, b in zip(izq, der):
-        print(f"   {a:<24}{b.ljust(ancho)[::-1].translate(espejo)}")
-    print()
-
-
-def _pedir_jugada():
-    while True:
-        texto = input("   Tu jugada: 1) piedra  2) papel  3) tijera  q) salir: ").strip().lower()
-        if texto in ("q", "salir"):
-            return None
-        if texto in ("1", "2", "3"):
-            return JUGADAS[int(texto) - 1]
-        if texto in JUGADAS:
-            return texto
-        print("   No entendi. Escribi 1, 2, 3 o el nombre.")
-
-
 def caso_piedra_papel_tijera(robot):
-    """8. Piedra, papel o tijera contra el robot (interactivo)."""
-    import random
+    """8. Piedra, papel o tijera contra el robot (con el teclado)."""
     anunciar("Piedra, papel o tijera")
-    decir("Juguemos a piedra, papel o tijera")
-    w = min(0.5, robot.perfil.velocidad_angular_max)
-    puntos = {"vos": 0, "robot": 0, "empates": 0}
-    while True:
-        jugada = _pedir_jugada()
-        if jugada is None:
-            break
-        # Cuenta regresiva: un vaiven por palabra (simetrico, no se desplaza)
-        for palabra in ("Piedra", "papel", "tijera"):
-            robot.mover(vyaw=w, tiempo=0.3)
-            decir(palabra)
-            robot.mover(vyaw=-w, tiempo=0.3)
-        robot_elige = random.choice(JUGADAS)
-        _mostrar(jugada, robot_elige)
-        decir(f"Yo elegi {robot_elige}")
-        if jugada == robot_elige:
-            puntos["empates"] += 1
-            decir("Empate")
-            robot.mover(vx=0.1, tiempo=0.5)
-            robot.mover(vx=-0.1, tiempo=0.5)
-        elif LE_GANA_A[robot_elige] == jugada:
-            puntos["robot"] += 1
-            decir("¡Gané yo!")
-            robot.saludar()
-        else:
-            puntos["vos"] += 1
-            decir("Ganaste vos. ¡Bien jugado!")
-            robot.dar_la_mano()
-        print(f"   Marcador -> vos {puntos['vos']}  |  robot {puntos['robot']}"
-              f"  |  empates {puntos['empates']}\n")
-    decir("Gracias por jugar")
+    juego_ppt.jugar_con_teclado(robot)
+
+
+def caso_ppt_camara(robot):
+    """17. Piedra, papel o tijera con la camara (el robot ve tu mano)."""
+    anunciar("Piedra, papel o tijera con camara")
+    try:
+        juego_ppt.jugar_con_camara(robot)
+    except CamaraNoDisponible as exc:
+        print(f"   Camara no disponible: {exc}")
+        print("   Jugamos con el teclado.")
+        juego_ppt.jugar_con_teclado(robot)
 
 
 def caso_despedida(robot):
@@ -268,20 +170,123 @@ def caso_despedida(robot):
     avanzar_metros(robot, 0.8)
 
 
-CASOS = [caso_entrada, caso_saludo_al_aula, caso_dar_la_mano,
-         caso_cuadrado, caso_curva, caso_baile, caso_moonwalk,
-         caso_piedra_papel_tijera, caso_despedida]
+# La secuencia original de la visita (opciones 1 a 9 y "toda la secuencia").
+SECUENCIA = [caso_entrada, caso_saludo_al_aula, caso_dar_la_mano,
+             caso_cuadrado, caso_curva, caso_baile, caso_moonwalk,
+             caso_piedra_papel_tijera, caso_despedida]
+# Lo nuevo: opciones 10 en adelante.
+NUEVOS = HABILIDADES + [caso_control_manual, caso_ppt_camara]
+CASOS = SECUENCIA + NUEVOS
 # Los juegos esperan respuestas del alumno: en "todo" se saltean si nadie
 # puede escribir (por ejemplo, si la salida esta redirigida).
 INTERACTIVOS = (caso_piedra_papel_tijera,)
 
+# Para el modo voz: nombre que devuelve voz.interpretar() -> caso
+CASOS_POR_NOMBRE = {
+    "entrada": caso_entrada, "saludo_al_aula": caso_saludo_al_aula,
+    "cuadrado": caso_cuadrado, "curva": caso_curva, "baile": caso_baile,
+    "moonwalk": caso_moonwalk, "despedida": caso_despedida,
+}
+CASOS_POR_NOMBRE.update({c.__name__.removeprefix("caso_"): c for c in HABILIDADES})
+
+
+def _titulo(caso):
+    return caso.__doc__.split(". ", 1)[1]
+
 
 def correr_todo(robot):
-    for caso in CASOS:
+    for caso in SECUENCIA:
         if caso in INTERACTIVOS and not sys.stdin.isatty():
-            print(f"\n(salteo '{caso.__doc__.split('. ', 1)[1]}': necesita teclado)")
+            print(f"\n(salteo '{_titulo(caso)}': necesita teclado)")
             continue
         correr(robot, caso)
+
+
+# --------------------------------------------------------------- modo voz
+def _otra_por_voz(oyente):
+    def preguntar():
+        for _ in range(2):
+            decir("¿Otra?")
+            texto = oyente.escuchar(timeout=6)
+            if texto:
+                print(f"   🎤 {texto}")
+            respuesta = voz.respuesta_si_no(texto or "")
+            if respuesta is not None:
+                return respuesta
+        return False
+    return preguntar
+
+
+def _jugar_por_voz(robot, oyente):
+    """Con camara si hay; si no, el alumno dice su jugada."""
+    try:
+        juego_ppt.jugar_con_camara(robot, otra_ronda=_otra_por_voz(oyente))
+    except CamaraNoDisponible as exc:
+        print(f"   Camara no disponible ({exc}): jugamos de palabra.")
+        juego_ppt.jugar_con_voz(robot, oyente, _otra_por_voz(oyente))
+
+
+def ejecutar_orden(robot, orden, oyente):
+    """Hace lo que pide una orden de voz.interpretar()."""
+    accion = orden["accion"]
+    if accion == "avanzar":
+        avanzar_metros(robot, orden["valor"])
+    elif accion == "costado":
+        costado_metros(robot, orden["valor"])
+    elif accion == "girar":
+        girar_grados(robot, orden["valor"])
+    elif accion == "saludar":
+        robot.saludar()
+    elif accion == "dar_la_mano":
+        robot.dar_la_mano()
+    elif accion == "detener":
+        robot.detenerse()
+    elif accion == "caso":
+        CASOS_POR_NOMBRE[orden["nombre"]](robot)
+    elif accion == "jugar":
+        _jugar_por_voz(robot, oyente)
+    # "ayuda": la confirmacion ya es la explicacion, no hay que moverse
+
+
+def modo_voz(robot):
+    """Escucha ordenes que empiezan con 'robot'. 'robot, menu' vuelve al menu."""
+    try:
+        oyente = voz.Oyente()
+    except voz.VozNoDisponible as exc:
+        print(f"\n   Control por voz no disponible: {exc}")
+        print("   Seguis con el menu.")
+        return
+    anunciar("Modo voz (Ctrl+C o 'robot, menu' para volver al menu)")
+    print(f"   {voz.AYUDA}")
+    decir("Te escucho. Decí robot y después la orden.")
+    esperando = False                  # dijeron solo "robot": espero la orden
+    try:
+        while True:
+            print("   🎤 Escuchando..." if not esperando else "   🎤 Esperando la orden...")
+            texto = oyente.escuchar(timeout=8 if esperando else None)
+            if texto is None:
+                esperando = False
+                continue
+            print(f"   🎤 Escuche: \"{texto}\"")
+            tenia_clave, resto = voz.quitar_palabra_clave(texto)
+            if not tenia_clave and not esperando:
+                continue               # charla del aula: no es para el robot
+            esperando = False
+            if not resto:
+                decir("¿Sí?")
+                esperando = True
+                continue
+            orden = voz.interpretar(resto)
+            if orden is None:
+                decir("No te entendí. Decí robot ayuda.")
+                continue
+            decir(orden["confirmacion"])
+            if orden["accion"] == "salir":
+                return
+            correr(robot, lambda r: ejecutar_orden(r, orden, oyente))
+    except KeyboardInterrupt:
+        robot.detenerse()
+        print("\n   Salgo del modo voz.")
 
 
 # --------------------------------------------------------------- principal
@@ -301,13 +306,18 @@ def menu(robot):
     while True:
         print("\n=== Visita del humanoide: casos de uso ===")
         for i, caso in enumerate(CASOS, 1):
-            print(f"  {i}. {caso.__doc__.split('. ', 1)[1]}")
-        print("  t. Toda la secuencia      q. Salir")
+            if i == len(SECUENCIA) + 1:
+                print("  --- Habilidades nuevas ---")
+            print(f"  {i:>2}. {_titulo(caso)}")
+        print("   v. Hablarle al robot (control por voz)")
+        print("   t. Toda la secuencia (1 a 9)      q. Salir")
         opcion = input("Elegi: ").strip().lower()
         if opcion == "q":
             return
         if opcion == "t":
             correr_todo(robot)
+        elif opcion == "v":
+            modo_voz(robot)
         elif opcion.isdigit() and 1 <= int(opcion) <= len(CASOS):
             correr(robot, CASOS[int(opcion) - 1])
         else:
@@ -330,6 +340,9 @@ def main():
         arg = sys.argv[1].lower() if len(sys.argv) > 1 else ""
         if arg == "todo":
             correr_todo(robot)
+        elif arg == "voz":
+            modo_voz(robot)
+            menu(robot)
         elif arg.isdigit() and 1 <= int(arg) <= len(CASOS):
             correr(robot, CASOS[int(arg) - 1])
         else:

@@ -1,0 +1,11 @@
+# Extras OPCIONALES de la demo de la visita (voz y camara).
+# Sin esto la demo funciona igual: menu + juego con teclado.
+#   python3 -m pip install -r mi_desarrollo/requirements-extras.txt
+#
+# Control por voz (reconocimiento offline en espanol)
+vosk
+sounddevice
+# Piedra, papel o tijera con camara (MediaPipe necesita Python 3.10 a 3.12
+# si todavia no salio la version para tu Python)
+mediapipe
+opencv-python

@@ -21,3 +21,9 @@ Si querés partir tu programa, creá archivos acá adentro e importalos:
 ```python
 from mis_validaciones import es_numero
 ```
+
+## Demo de la visita
+
+`demo_visita.py` y sus módulos (`habilidades.py`, `juego_ppt.py`, `vision_ppt.py`,
+`voz.py`, `utilidades.py`) son la demo del humanoide G1: menú, control por voz y
+piedra, papel o tijera con cámara. Ver `LEEME_VISITA.md` en la carpeta de arriba.

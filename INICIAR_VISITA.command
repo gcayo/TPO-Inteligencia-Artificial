@@ -54,6 +54,45 @@ if ! "$PY" -c "import mujoco" >/dev/null 2>&1; then
 fi
 echo "   [OK] MuJoCo $("$PY" -c 'import mujoco; print(mujoco.__version__)')"
 
+# 2b) Extras: voz y camara. Son OPCIONALES: si no se instalan, la demo anda
+#     igual con el menu y el juego se juega con el teclado.
+if ! "$PY" -c "import vosk, sounddevice" >/dev/null 2>&1; then
+  echo "   Instalando el control por voz (solo la primera vez)..."
+  "$PY" -m pip install -q vosk sounddevice >/dev/null 2>&1 \
+    && echo "   [OK] Voz" \
+    || echo "   Aviso: no pude instalar la voz. Queda el menu."
+fi
+VISION="$HOME/.venvs/unitree-vision"
+if ! "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1 && [ ! -x "$VISION/bin/python" ]; then
+  echo "   Instalando la vision por camara (solo la primera vez, puede tardar)..."
+  # (si mediapipe no trae OpenCV, se agrega opencv-python)
+  if "$PY" -m pip install -q mediapipe >/dev/null 2>&1 \
+     && { "$PY" -c "import cv2" >/dev/null 2>&1 || "$PY" -m pip install -q opencv-python >/dev/null 2>&1; } \
+     && "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1; then
+    echo "   [OK] Camara"
+  else
+    # MediaPipe tarda en salir para cada Python nuevo. Si no hay para este,
+    # armamos un entorno aparte con un Python compatible (3.12 a 3.10).
+    VPY=""
+    for V in 3.12 3.11 3.10; do
+      for C in "python$V" /Library/Frameworks/Python.framework/Versions/$V/bin/python$V \
+               /opt/homebrew/bin/python$V /usr/local/bin/python$V; do
+        if command -v "$C" >/dev/null 2>&1 || [ -x "$C" ]; then VPY="$C"; break 2; fi
+      done
+    done
+    if [ -n "$VPY" ] && "$VPY" -m venv "$VISION" >/dev/null 2>&1 \
+       && "$VISION/bin/python" -m pip install -q mediapipe >/dev/null 2>&1 \
+       && { "$VISION/bin/python" -c "import cv2" >/dev/null 2>&1 || "$VISION/bin/python" -m pip install -q opencv-python >/dev/null 2>&1; } \
+       && "$VISION/bin/python" -c "import cv2, mediapipe" >/dev/null 2>&1; then
+      echo "   [OK] Camara (con $VPY aparte)"
+    else
+      rm -rf "$VISION"
+      echo "   Aviso: no pude instalar la camara (MediaPipe necesita Python 3.10 a 3.12)."
+      echo "          Piedra, papel o tijera se juega con el teclado."
+    fi
+  fi
+fi
+
 # 3) En macOS la ventana 3D solo abre con mjpython
 SIMPY="$PY"
 if [ "$(uname)" = "Darwin" ]; then
