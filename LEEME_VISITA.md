@@ -24,30 +24,24 @@ python mi_desarrollo\demo_visita.py
 ```
 
 ## Casos de uso del menú
-Los de la visita original:
 1. Entrada y saludo
-2. Saludo al aula (izquierda, centro, derecha)
+2. Saludo al aula: izquierda, centro y derecha
 3. Acercarse y dar la mano
 4. Cuadrado de 0.40 m
-5. Curva (avanza y gira a la vez)
-6. Baile (coreografía con movimientos permitidos)
-7. Moonwalk
-8. Piedra, papel o tijera con el teclado
-9. Despedida
-
-Habilidades nuevas:
-10. Presentación (se presenta y cuenta lo que sabe hacer)
-11. Zigzag
-12. Figura de ocho
-13. Cangrejo (pasos al costado)
-14. Vigía (mira en las cuatro direcciones)
-15. Celebración
-16. Control manual con el teclado (`w` `a` `s` `d`, `z` `c` al costado, `h` saludar, `m` mano)
-17. **Piedra, papel o tijera con la cámara**: el robot ve tu mano
+5. Curva: avanza y gira a la vez
+6. Baile con movimientos permitidos
+7. Piedra, papel o tijera con el teclado
+8. Despedida
+9. Presentación: se presenta y cuenta lo que sabe hacer
+10. Zigzag
+11. Figura de ocho
+12. Celebración
+13. Control manual con el teclado: `w` `a` `s` `d`, `z` `c` al costado, `h` saludar, `m` mano
+14. **Piedra, papel o tijera con la cámara**: el robot ve tu mano
 
 Y además:
-- **v. Hablarle al robot (control por voz)**
-- t. Toda la secuencia (1 a 9)
+- **v. Hablarle al robot por voz**
+- t. Toda la secuencia: opciones 1 a 8
 
 Las figuras nuevas son cerradas: el robot termina donde empezó.
 
@@ -66,7 +60,7 @@ Si decís solo "robot", contesta "¿Sí?" y espera la orden.
 | robot, paso al costado a la derecha | se corre sin girar |
 | robot, media vuelta / vuelta entera | gira 180° / 360° |
 | robot, saludá / saludá a todos / dame la mano | gestos |
-| robot, bailá / moonwalk / cuadrado / curva / zigzag / ocho / cangrejo / vigía / festejá / presentate / chau | las coreografías |
+| robot, bailá / cuadrado / curva / zigzag / ocho / festejá / presentate / chau | las coreografías |
 | robot, juguemos a piedra, papel o tijera | el juego (con cámara si hay; si no, decís tu jugada) |
 | robot, pará | se detiene |
 | robot, ayuda | dice qué sabe hacer |

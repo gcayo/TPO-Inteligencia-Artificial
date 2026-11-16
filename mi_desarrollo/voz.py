@@ -30,7 +30,7 @@ COSTADO_POR_DEFECTO = 0.2
 AYUDA = ("Decí robot y después la orden. Por ejemplo: robot avanza un metro, "
          "robot gira a la izquierda, robot paso al costado, robot media vuelta, "
          "robot saluda, robot dame la mano, robot baila, robot zigzag, "
-         "robot ocho, robot cangrejo, robot vigía, robot celebra, "
+         "robot ocho, robot celebra, "
          "robot juguemos a piedra papel o tijera, o robot menú para volver.")
 
 # Casos con nombre: palabra clave -> nombre del caso en la demo.
@@ -38,11 +38,8 @@ CASOS_POR_VOZ = [
     (("presentate", "presentacion", "quien sos"), "presentacion"),
     (("zigzag", "zig zag", "zig"), "zigzag"),
     (("ocho",), "ocho"),
-    (("cangrejo",), "cangrejo"),
-    (("vigia", "vigila", "alrededor", "explora"), "vigia"),
     (("celebra", "festeja", "festejo", "celebracion", "festejemos"), "celebracion"),
     (("baila", "baile", "bailar", "bailemos", "bailate"), "baile"),
-    (("moonwalk", "lunar", "maicol"), "moonwalk"),
     (("cuadrado",), "cuadrado"),
     (("curva", "circulo"), "curva"),
     (("entrada", "entra"), "entrada"),
@@ -61,10 +58,10 @@ FRASES = [
     "robot vuelta completa", "robot para", "robot pará", "robot frena",
     "robot alto", "robot quieto", "robot saluda", "robot saludá", "robot hola",
     "robot saluda a todos", "robot saluda al aula", "robot dame la mano",
-    "robot baila", "robot bailá", "robot moonwalk", "robot paso lunar",
+    "robot baila", "robot bailá",
     "robot cuadrado", "robot curva", "robot círculo", "robot ocho",
-    "robot zigzag", "robot zig zag", "robot cangrejo", "robot vigía",
-    "robot mira alrededor", "robot explora", "robot celebra", "robot festeja",
+    "robot zigzag", "robot zig zag",
+    "robot celebra", "robot festeja",
     "robot presentate", "robot quién sos", "robot entrada", "robot despedida",
     "robot chau", "robot adiós", "robot juguemos a piedra papel o tijera",
     "robot jugar", "piedra", "papel", "tijera", "sí", "si", "no", "otra",

@@ -21,7 +21,7 @@ para no superar la duracion maxima por comando.
 
 Archivos de la demo (todos en mi_desarrollo/):
     utilidades.py   moverse en metros/grados y hablar
-    habilidades.py  figuras nuevas (zigzag, ocho, cangrejo...) y control manual
+    habilidades.py  figuras nuevas (zigzag, ocho...) y control manual
     juego_ppt.py    piedra, papel o tijera (teclado, camara o voz)
     vision_ppt.py   la camara: detecta la mano con MediaPipe
     voz.py          el microfono: entiende ordenes en castellano con Vosk
@@ -69,7 +69,7 @@ def caso_dar_la_mano(robot):
 
 
 def caso_cuadrado(robot):
-    """4. Recorre un cuadrado de 0.4 m (el ejemplo de los TP de programacion)."""
+    """4. Recorre un cuadrado de 0.4 m."""
     anunciar("Cuadrado de 0.40 m de lado")
     for _ in range(4):
         avanzar_metros(robot, 0.4)
@@ -77,7 +77,7 @@ def caso_cuadrado(robot):
 
 
 def caso_curva(robot):
-    """5. Una curva: avanza y gira a la vez con mover() (lo que usa la app TP04)."""
+    """5. Una curva: avanza y gira a la vez con mover()."""
     anunciar("Curva: medio circulo combinando vx y vyaw")
     # Medio circulo = pi rad a 0.4 rad/s -> 7.85 s, en tramos.
     w = 0.4
@@ -90,7 +90,7 @@ def caso_curva(robot):
 
 
 def caso_baile(robot):
-    """6. Baile: coreografia con movimientos permitidos (vuelve al mismo lugar)."""
+    """6. Baile: coreografia con movimientos permitidos."""
     # NO usa Dance1/Dance2 del SDK: estan PROHIBIDAS en acciones.py (movimientos
     # bruscos e impredecibles). Esta coreografia usa solo mover() y saludar(),
     # dentro de los limites de la materia, asi que corre igual en el robot real.
@@ -127,32 +127,15 @@ def caso_baile(robot):
     robot.saludar()
 
 
-def caso_moonwalk(robot):
-    """7. Moonwalk: se desliza hacia atras con las piernas 'caminando' adelante."""
-    # En el simulador la animacion de las piernas siempre avanza, sin importar
-    # el sentido: al retroceder, el robot "camina" hacia adelante mientras se
-    # desliza hacia atras. Eso ES el moonwalk. En el robot real es caminar hacia
-    # atras, lento y dentro de los limites.
-    anunciar("Moonwalk: deslizamiento hacia atras, glide lateral y vuelta")
-    decir("Moonwalk")
-    v = min(0.15, robot.perfil.velocidad_max)
-    _en_tramos(robot, robot.avanzar, -v, 0.6 / v)          # atras 0.6 m
-    robot.mover(vy=-0.12, tiempo=1.5)                       # glide a la derecha
-    robot.mover(vy=0.12, tiempo=1.5)                        # y vuelve
-    _en_tramos(robot, robot.avanzar, -v, 0.3 / v)           # otro tramo atras
-    robot.saludar()
-    avanzar_metros(robot, 0.9)                              # vuelve a su lugar
-
-
 # ------------------------------------------------- piedra, papel o tijera
 def caso_piedra_papel_tijera(robot):
-    """8. Piedra, papel o tijera contra el robot (con el teclado)."""
+    """7. Piedra, papel o tijera contra el robot con el teclado."""
     anunciar("Piedra, papel o tijera")
     juego_ppt.jugar_con_teclado(robot)
 
 
 def caso_ppt_camara(robot):
-    """17. Piedra, papel o tijera con la camara (el robot ve tu mano)."""
+    """14. Piedra, papel o tijera con la camara: el robot ve tu mano."""
     anunciar("Piedra, papel o tijera con camara")
     try:
         juego_ppt.jugar_con_camara(robot)
@@ -163,18 +146,18 @@ def caso_ppt_camara(robot):
 
 
 def caso_despedida(robot):
-    """9. Se despide y sale del centro de la escena."""
+    """8. Se despide y sale del centro de la escena."""
     anunciar("Despedida: saluda, da media vuelta y se aleja")
     robot.saludar()
     girar_grados(robot, 180)
     avanzar_metros(robot, 0.8)
 
 
-# La secuencia original de la visita (opciones 1 a 9 y "toda la secuencia").
+# La secuencia original de la visita (opciones 1 a 8 y "toda la secuencia").
 SECUENCIA = [caso_entrada, caso_saludo_al_aula, caso_dar_la_mano,
-             caso_cuadrado, caso_curva, caso_baile, caso_moonwalk,
+             caso_cuadrado, caso_curva, caso_baile,
              caso_piedra_papel_tijera, caso_despedida]
-# Lo nuevo: opciones 10 en adelante.
+# Lo nuevo: opciones 9 en adelante.
 NUEVOS = HABILIDADES + [caso_control_manual, caso_ppt_camara]
 CASOS = SECUENCIA + NUEVOS
 # Los juegos esperan respuestas del alumno: en "todo" se saltean si nadie
@@ -185,7 +168,7 @@ INTERACTIVOS = (caso_piedra_papel_tijera,)
 CASOS_POR_NOMBRE = {
     "entrada": caso_entrada, "saludo_al_aula": caso_saludo_al_aula,
     "cuadrado": caso_cuadrado, "curva": caso_curva, "baile": caso_baile,
-    "moonwalk": caso_moonwalk, "despedida": caso_despedida,
+    "despedida": caso_despedida,
 }
 CASOS_POR_NOMBRE.update({c.__name__.removeprefix("caso_"): c for c in HABILIDADES})
 
@@ -306,11 +289,9 @@ def menu(robot):
     while True:
         print("\n=== Visita del humanoide: casos de uso ===")
         for i, caso in enumerate(CASOS, 1):
-            if i == len(SECUENCIA) + 1:
-                print("  --- Habilidades nuevas ---")
             print(f"  {i:>2}. {_titulo(caso)}")
-        print("   v. Hablarle al robot (control por voz)")
-        print("   t. Toda la secuencia (1 a 9)      q. Salir")
+        print("   v. Hablarle al robot por voz")
+        print("   t. Toda la secuencia            q. Salir")
         opcion = input("Elegi: ").strip().lower()
         if opcion == "q":
             return

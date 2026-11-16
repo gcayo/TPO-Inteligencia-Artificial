@@ -27,7 +27,7 @@ def _w(robot, deseada):
 
 # ----------------------------------------------------------------- figuras
 def caso_presentacion(robot):
-    """10. Presentacion: el robot se presenta y cuenta lo que sabe hacer."""
+    """9. Presentacion: el robot se presenta y cuenta lo que sabe hacer."""
     anunciar("Presentacion")
     robot.saludar()
     decir("Hola, soy el robot humanoide G1. Hoy vine a visitarlos.")
@@ -38,7 +38,7 @@ def caso_presentacion(robot):
 
 
 def caso_zigzag(robot):
-    """11. Zigzag: avanza esquivando conos imaginarios y vuelve."""
+    """10. Zigzag: avanza esquivando conos imaginarios y vuelve."""
     anunciar("Zigzag: cuatro diagonales y vuelta al lugar")
     vx, vy, t = _v(robot, 0.15), _v(robot, 0.12), 1.5
     # Lateral +, -, -, +  ->  termina centrado (y = 0)
@@ -48,7 +48,7 @@ def caso_zigzag(robot):
 
 
 def caso_ocho(robot):
-    """12. Figura de ocho: un circulo a la izquierda y otro a la derecha."""
+    """11. Figura de ocho: un circulo a la izquierda y otro a la derecha."""
     anunciar("Ocho: dos circulos de 30 cm de radio")
     v, w = _v(robot, 0.15), _w(robot, 0.5)
     vuelta = 2 * math.pi / w                     # tiempo de un circulo entero
@@ -56,27 +56,8 @@ def caso_ocho(robot):
     mover_en_tramos(robot, vuelta, vx=v, vyaw=-w)
 
 
-def caso_cangrejo(robot):
-    """13. Cangrejo: pasos al costado, saludando a cada lado."""
-    anunciar("Cangrejo: izquierda, derecha y vuelta al centro")
-    costado_metros(robot, 0.3)
-    robot.saludar()
-    costado_metros(robot, -0.6)
-    robot.saludar()
-    costado_metros(robot, 0.3)
-
-
-def caso_vigia(robot):
-    """14. Vigia: mira a su alrededor en cuatro direcciones."""
-    anunciar("Vigia: un cuarto de vuelta por vez")
-    for frase in ("Al frente, despejado.", "A la izquierda, despejado.",
-                  "Atrás, despejado.", "A la derecha, todo en orden."):
-        girar_grados(robot, 90)
-        decir(frase)
-
-
 def caso_celebracion(robot):
-    """15. Celebracion: festeja con un giro, vaiven y saludos."""
+    """12. Celebracion: festeja con un giro, vaiven y saludos."""
     anunciar("Celebracion")
     decir("¡Vamos!")
     w = _w(robot, 0.5)
@@ -102,7 +83,7 @@ TECLAS = {
 
 
 def caso_control_manual(robot):
-    """16. Control manual: manejalo con el teclado (w a s d)."""
+    """13. Control manual: manejalo con el teclado."""
     anunciar("Control manual")
     print("   Escribi una o varias letras y Enter (ej: 'wwa' = adelante, "
           "adelante, izquierda).")
@@ -126,5 +107,4 @@ def caso_control_manual(robot):
         print(f"   Estado: {robot.verificar_estado()}")
 
 
-HABILIDADES = [caso_presentacion, caso_zigzag, caso_ocho, caso_cangrejo,
-               caso_vigia, caso_celebracion]
+HABILIDADES = [caso_presentacion, caso_zigzag, caso_ocho, caso_celebracion]
