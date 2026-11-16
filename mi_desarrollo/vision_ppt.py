@@ -97,17 +97,62 @@ def clasificar_mano(puntos):
 
 
 # ------------------------------------------------------------------ detector
+def _contextos_ssl():
+    """Contextos SSL a probar, del mas al menos probable de andar.
+
+    El Python de python.org en macOS no trae certificados: sin esto la
+    descarga falla con CERTIFICATE_VERIFY_FAILED. Se prueba certifi (si esta
+    instalado), despues los certificados del sistema y por ultimo los de Python.
+    """
+    import ssl
+    archivos = []
+    try:
+        import certifi
+        archivos.append(certifi.where())
+    except ImportError:
+        pass
+    archivos += [a for a in ("/etc/ssl/cert.pem", "/etc/ssl/certs/ca-certificates.crt")
+                 if os.path.exists(a)]
+    contextos = []
+    for archivo in archivos:
+        try:
+            contextos.append(ssl.create_default_context(cafile=archivo))
+        except (ssl.SSLError, OSError):
+            pass
+    contextos.append(ssl.create_default_context())
+    return contextos
+
+
+def _descargar(url, destino):
+    import shutil
+    import urllib.error
+    import urllib.request
+    tmp = destino.with_suffix(".tmp")
+    ultimo_error = None
+    for contexto in _contextos_ssl():
+        try:
+            with urllib.request.urlopen(url, context=contexto, timeout=60) as r, \
+                    open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f)
+            tmp.replace(destino)
+            return
+        except urllib.error.URLError as exc:
+            ultimo_error = exc
+            if "CERTIFICATE_VERIFY_FAILED" not in str(exc):
+                break                      # sin internet: no sirve probar otro
+    if tmp.exists():
+        tmp.unlink()
+    raise ultimo_error
+
+
 def _modelo_tasks():
     """Descarga (una sola vez) el modelo de la API nueva de MediaPipe."""
     destino = CACHE / "hand_landmarker.task"
     if not destino.exists():
-        import urllib.request
         CACHE.mkdir(parents=True, exist_ok=True)
         print("   Descargando el modelo de manos (solo la primera vez)...",
               file=sys.stderr)
-        tmp = destino.with_suffix(".tmp")
-        urllib.request.urlretrieve(MODELO_URL, tmp)
-        tmp.replace(destino)
+        _descargar(MODELO_URL, destino)
     return str(destino)
 
 

@@ -66,7 +66,7 @@ VISION="$HOME/.venvs/unitree-vision"
 if ! "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1 && [ ! -x "$VISION/bin/python" ]; then
   echo "   Instalando la vision por camara (solo la primera vez, puede tardar)..."
   # (si mediapipe no trae OpenCV, se agrega opencv-python)
-  if "$PY" -m pip install -q mediapipe >/dev/null 2>&1 \
+  if "$PY" -m pip install -q mediapipe certifi >/dev/null 2>&1 \
      && { "$PY" -c "import cv2" >/dev/null 2>&1 || "$PY" -m pip install -q opencv-python >/dev/null 2>&1; } \
      && "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1; then
     echo "   [OK] Camara"
@@ -81,7 +81,7 @@ if ! "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1 && [ ! -x "$VISION/bin/pyt
       done
     done
     if [ -n "$VPY" ] && "$VPY" -m venv "$VISION" >/dev/null 2>&1 \
-       && "$VISION/bin/python" -m pip install -q mediapipe >/dev/null 2>&1 \
+       && "$VISION/bin/python" -m pip install -q mediapipe certifi >/dev/null 2>&1 \
        && { "$VISION/bin/python" -c "import cv2" >/dev/null 2>&1 || "$VISION/bin/python" -m pip install -q opencv-python >/dev/null 2>&1; } \
        && "$VISION/bin/python" -c "import cv2, mediapipe" >/dev/null 2>&1; then
       echo "   [OK] Camara (con $VPY aparte)"
