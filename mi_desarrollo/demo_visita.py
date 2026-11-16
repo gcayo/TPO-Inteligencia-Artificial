@@ -12,7 +12,7 @@ modos conviven: desde el modo voz se vuelve al menu diciendo "robot, menu".
 Uso (con el simulador ABIERTO y el G1 elegido):
     python3 mi_desarrollo/demo_visita.py          # menu interactivo
     python3 mi_desarrollo/demo_visita.py todo     # corre toda la secuencia
-    python3 mi_desarrollo/demo_visita.py 2        # corre un solo caso
+    python3 mi_desarrollo/demo_visita.py 2        # corre el caso 2 y sigue con el menu
     python3 mi_desarrollo/demo_visita.py voz      # arranca en modo voz
 
 Todas las velocidades y tiempos se validan contra el perfil de la materia con
@@ -325,7 +325,8 @@ def main():
             modo_voz(robot)
             menu(robot)
         elif arg.isdigit() and 1 <= int(arg) <= len(CASOS):
-            correr(robot, CASOS[int(arg) - 1])
+            correr(robot, CASOS[int(arg) - 1])        # esa opcion y despues el menu
+            menu(robot)
         else:
             menu(robot)
     except KeyboardInterrupt:
