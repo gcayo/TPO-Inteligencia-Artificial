@@ -5,7 +5,7 @@
 El proyecto está en GitHub y la demo del humanoide G1 suma habilidades nuevas, control manual, control por voz y piedra, papel o tijera con cámara. El menú original sigue funcionando y convive con la voz.
 
 - **Repositorio:** github.com/gcayo/TPO-Inteligencia-Artificial, rama `main`.
-- **Menú:** 14 opciones, más `v` para el modo voz y `t` para toda la secuencia.
+- **Menú:** 14 opciones, más `t` para toda la secuencia. El modo voz se arranca con `bash INICIAR_VISITA.command voz`.
 - **Seguridad:** todo usa solo los movimientos permitidos por el proyecto, así que funciona igual en el robot real.
 - **Pruebas:** la lógica se probó con un robot simulado.
 
@@ -21,7 +21,7 @@ Es un laboratorio para programar robots Unitree (el humanoide G1 o el perro Go2)
 ### Cómo se usa
 
 1. En la Terminal de la Mac, dentro de la carpeta del proyecto: `bash INICIAR_VISITA.command`. Instala lo que falte, abre el simulador con el G1 y muestra el menú.
-2. Se elige una opción por número, o `v` para manejar el robot con la voz.
+2. Se elige una opción por número. Para manejar el robot con la voz: `bash INICIAR_VISITA.command voz`.
 3. El día de la visita, el mismo programa se conecta al robot físico en lugar del simulador.
 
 ## Cómo encaja todo
@@ -55,9 +55,9 @@ Se trabajó sobre el código existente sin tocar el entorno del simulador: todo 
 4. **Voz.** Se separó en dos partes: `Oyente`, que pasa del micrófono a texto, e `interpretar`, que pasa del texto a una orden. Así la parte que entiende las frases se prueba sin micrófono.
 5. **Cámara.** También en dos partes: la detección de la mano (MediaPipe) y el clasificador, una función que solo mira los 21 puntos y decide la jugada.
 6. **Juego.** `juego_ppt.py` tiene la ronda en común; teclado, cámara y voz solo cambian cómo se lee la jugada del alumno.
-7. **Integración.** El menú suma las opciones nuevas y `v`. El modo voz llama a las mismas funciones que el menú.
+7. **Integración.** El menú suma las opciones nuevas. El modo voz llama a las mismas funciones que el menú.
 8. **Instalación y documentación.** El lanzador instala los extras y `LEEME_VISITA.md` explica el uso.
-9. **Ajustes al menú.** Se sacaron el moonwalk, el cangrejo, el vigía, el separador "Habilidades nuevas" y los textos entre paréntesis de las opciones.
+9. **Ajustes al menú.** Se sacaron el moonwalk, el cangrejo, el vigía, el separador "Habilidades nuevas", los textos entre paréntesis y la opción `v` del menú (la voz se arranca por argumento).
 
 ### Decisiones de diseño
 
@@ -101,7 +101,6 @@ No se modificó ningún archivo de `entorno/`. Lo que anda en el simulador anda 
 | 12 | Celebración | Saludo, vaivén corto, vuelta entera y otro saludo |
 | 13 | Control manual | Se maneja con el teclado |
 | 14 | Piedra, papel o tijera con cámara | El robot ve tu mano |
-| v | Voz | Control por voz |
 | t | Toda la secuencia | Corre las opciones 1 a 8 |
 
 Las opciones 9 a 14 son nuevas. Las figuras nuevas son cerradas: el robot termina donde empezó.
@@ -121,7 +120,7 @@ Se pueden escribir varias letras juntas: `wwa` avanza dos veces y gira a la izqu
 
 ## Control por voz
 
-Con la opción `v` del menú, el robot obedece órdenes habladas en castellano; diciendo "robot, menú" se vuelve al menú.
+Arrancando con `bash INICIAR_VISITA.command voz`, el robot obedece órdenes habladas en castellano; diciendo "robot, menú" se pasa al menú.
 
 ### Cómo funciona
 
@@ -193,7 +192,7 @@ Todo lo nuevo está en `mi_desarrollo/`; nada dentro de `entorno/` cambió.
 | `mi_desarrollo/vision_ppt.py` | Nuevo | Detección de la mano, clasificador de gestos, ventana de la cámara y modo de proceso aparte |
 | `mi_desarrollo/juego_ppt.py` | Nuevo | Piedra, papel o tijera con teclado, cámara o voz |
 | `mi_desarrollo/requirements-extras.txt` | Nuevo | Librerías opcionales: vosk, sounddevice, mediapipe, opencv-python |
-| `mi_desarrollo/demo_visita.py` | Modificado | Menú de 14 opciones, opción `v` y modo voz; el juego pasó a `juego_ppt.py` |
+| `mi_desarrollo/demo_visita.py` | Modificado | Menú de 14 opciones y modo voz; el juego pasó a `juego_ppt.py` |
 | `INICIAR_VISITA.command` | Modificado | Instala la voz y la cámara; si hace falta, arma el Python aparte para MediaPipe |
 | `LEEME_VISITA.md` | Modificado | Guía de uso: menú, órdenes de voz, juego, Windows y permisos |
 | `DOCUMENTACION.md` | Nuevo | Este documento |

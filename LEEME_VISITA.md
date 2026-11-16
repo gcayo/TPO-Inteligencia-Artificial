@@ -40,14 +40,13 @@ python mi_desarrollo\demo_visita.py
 14. **Piedra, papel o tijera con la cámara**: el robot ve tu mano
 
 Y además:
-- **v. Hablarle al robot por voz**
 - t. Toda la secuencia: opciones 1 a 8
 
 Las figuras nuevas son cerradas: el robot termina donde empezó.
 
 ## Control por voz
-Elegí `v` en el menú (o arrancá con `bash INICIAR_VISITA.command voz`).
-El menú sigue estando: decí **"robot, menú"** (o Ctrl+C) para volver.
+Arrancá con `bash INICIAR_VISITA.command voz`.
+Decí **"robot, menú"** (o Ctrl+C) para pasar al menú.
 
 Las órdenes empiezan con **"robot"**, así una charla en el aula no lo mueve.
 Si decís solo "robot", contesta "¿Sí?" y espera la orden.

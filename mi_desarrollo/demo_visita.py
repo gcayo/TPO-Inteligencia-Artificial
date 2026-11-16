@@ -5,9 +5,9 @@ Casos de uso pensados para mostrar en el aula, usando SOLO la API permitida
 nuevas al robot: combina las que ya estan en la lista blanca, asi que lo que
 anda aca anda igual en el laboratorio fisico.
 
-Ademas del menu, el robot se puede manejar POR VOZ (opcion 'v' del menu): se
-le dice "robot, avanza un metro", "robot, baila", "robot, juguemos"... Los dos
-modos conviven: desde el modo voz se vuelve al menu diciendo "robot, menu".
+Ademas del menu, el robot se puede manejar POR VOZ (arrancando con el
+argumento "voz"): se le dice "robot, avanza un metro", "robot, baila",
+"robot, juguemos"... Diciendo "robot, menu" se pasa al menu.
 
 Uso (con el simulador ABIERTO y el G1 elegido):
     python3 mi_desarrollo/demo_visita.py          # menu interactivo
@@ -290,15 +290,12 @@ def menu(robot):
         print("\n=== Visita del humanoide: casos de uso ===")
         for i, caso in enumerate(CASOS, 1):
             print(f"  {i:>2}. {_titulo(caso)}")
-        print("   v. Hablarle al robot por voz")
         print("   t. Toda la secuencia            q. Salir")
         opcion = input("Elegi: ").strip().lower()
         if opcion == "q":
             return
         if opcion == "t":
             correr_todo(robot)
-        elif opcion == "v":
-            modo_voz(robot)
         elif opcion.isdigit() and 1 <= int(opcion) <= len(CASOS):
             correr(robot, CASOS[int(opcion) - 1])
         else:
