@@ -31,7 +31,7 @@ def caso_presentacion(robot):
     anunciar("Presentacion")
     robot.saludar()
     decir("Hola, soy el robot humanoide G1. Hoy vine a visitarlos.")
-    decir("Sé caminar, bailar, hacer figuras, obedecer órdenes de voz "
+    decir("Sé caminar, bailar, hacer figuras "
           "y jugar a piedra, papel o tijera mirando la cámara.")
     robot.dar_la_mano()
     decir("Mucho gusto.")

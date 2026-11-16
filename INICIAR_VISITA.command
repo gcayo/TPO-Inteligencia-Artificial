@@ -54,14 +54,8 @@ if ! "$PY" -c "import mujoco" >/dev/null 2>&1; then
 fi
 echo "   [OK] MuJoCo $("$PY" -c 'import mujoco; print(mujoco.__version__)')"
 
-# 2b) Extras: voz y camara. Son OPCIONALES: si no se instalan, la demo anda
-#     igual con el menu y el juego se juega con el teclado.
-if ! "$PY" -c "import vosk, sounddevice" >/dev/null 2>&1; then
-  echo "   Instalando el control por voz (solo la primera vez)..."
-  "$PY" -m pip install -q vosk sounddevice >/dev/null 2>&1 \
-    && echo "   [OK] Voz" \
-    || echo "   Aviso: no pude instalar la voz. Queda el menu."
-fi
+# 2b) Extra: camara. Es OPCIONAL: si no se instala, la demo anda igual con el
+#     menu y el juego se juega con el teclado.
 VISION="$HOME/.venvs/unitree-vision"
 if ! "$PY" -c "import cv2, mediapipe" >/dev/null 2>&1 && [ ! -x "$VISION/bin/python" ]; then
   echo "   Instalando la vision por camara (solo la primera vez, puede tardar)..."

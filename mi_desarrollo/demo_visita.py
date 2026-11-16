@@ -5,15 +5,10 @@ Casos de uso pensados para mostrar en el aula, usando SOLO la API permitida
 nuevas al robot: combina las que ya estan en la lista blanca, asi que lo que
 anda aca anda igual en el laboratorio fisico.
 
-Ademas del menu, el robot se puede manejar POR VOZ (arrancando con el
-argumento "voz"): se le dice "robot, avanza un metro", "robot, baila",
-"robot, juguemos"... Diciendo "robot, menu" se pasa al menu.
-
 Uso (con el simulador ABIERTO y el G1 elegido):
     python3 mi_desarrollo/demo_visita.py          # menu interactivo
     python3 mi_desarrollo/demo_visita.py todo     # corre toda la secuencia
     python3 mi_desarrollo/demo_visita.py 2        # corre el caso 2 y sigue con el menu
-    python3 mi_desarrollo/demo_visita.py voz      # arranca en modo voz
 
 Todas las velocidades y tiempos se validan contra el perfil de la materia con
 que se abrio el simulador. Los movimientos largos se parten en ordenes cortas
@@ -22,16 +17,14 @@ para no superar la duracion maxima por comando.
 Archivos de la demo (todos en mi_desarrollo/):
     utilidades.py   moverse en metros/grados y hablar
     habilidades.py  figuras nuevas (zigzag, ocho...) y control manual
-    juego_ppt.py    piedra, papel o tijera (teclado, camara o voz)
+    juego_ppt.py    piedra, papel o tijera (teclado o camara)
     vision_ppt.py   la camara: detecta la mano con MediaPipe
-    voz.py          el microfono: entiende ordenes en castellano con Vosk
 """
 
 import math
 import sys
 
 import juego_ppt
-import voz
 from habilidades import HABILIDADES, caso_control_manual
 from robot import ErrorDeSeguridad, NoHaySimulador, Robot
 from utilidades import (VEL_ANGULAR, VEL_LINEAL, anunciar, avanzar_metros,  # noqa: F401
@@ -164,15 +157,6 @@ CASOS = SECUENCIA + NUEVOS
 # puede escribir (por ejemplo, si la salida esta redirigida).
 INTERACTIVOS = (caso_piedra_papel_tijera,)
 
-# Para el modo voz: nombre que devuelve voz.interpretar() -> caso
-CASOS_POR_NOMBRE = {
-    "entrada": caso_entrada, "saludo_al_aula": caso_saludo_al_aula,
-    "cuadrado": caso_cuadrado, "curva": caso_curva, "baile": caso_baile,
-    "despedida": caso_despedida,
-}
-CASOS_POR_NOMBRE.update({c.__name__.removeprefix("caso_"): c for c in HABILIDADES})
-
-
 def _titulo(caso):
     return caso.__doc__.split(". ", 1)[1]
 
@@ -183,93 +167,6 @@ def correr_todo(robot):
             print(f"\n(salteo '{_titulo(caso)}': necesita teclado)")
             continue
         correr(robot, caso)
-
-
-# --------------------------------------------------------------- modo voz
-def _otra_por_voz(oyente):
-    def preguntar():
-        for _ in range(2):
-            decir("¿Otra?")
-            texto = oyente.escuchar(timeout=6)
-            if texto:
-                print(f"   🎤 {texto}")
-            respuesta = voz.respuesta_si_no(texto or "")
-            if respuesta is not None:
-                return respuesta
-        return False
-    return preguntar
-
-
-def _jugar_por_voz(robot, oyente):
-    """Con camara si hay; si no, el alumno dice su jugada."""
-    try:
-        juego_ppt.jugar_con_camara(robot, otra_ronda=_otra_por_voz(oyente))
-    except CamaraNoDisponible as exc:
-        print(f"   Camara no disponible ({exc}): jugamos de palabra.")
-        juego_ppt.jugar_con_voz(robot, oyente, _otra_por_voz(oyente))
-
-
-def ejecutar_orden(robot, orden, oyente):
-    """Hace lo que pide una orden de voz.interpretar()."""
-    accion = orden["accion"]
-    if accion == "avanzar":
-        avanzar_metros(robot, orden["valor"])
-    elif accion == "costado":
-        costado_metros(robot, orden["valor"])
-    elif accion == "girar":
-        girar_grados(robot, orden["valor"])
-    elif accion == "saludar":
-        robot.saludar()
-    elif accion == "dar_la_mano":
-        robot.dar_la_mano()
-    elif accion == "detener":
-        robot.detenerse()
-    elif accion == "caso":
-        CASOS_POR_NOMBRE[orden["nombre"]](robot)
-    elif accion == "jugar":
-        _jugar_por_voz(robot, oyente)
-    # "ayuda": la confirmacion ya es la explicacion, no hay que moverse
-
-
-def modo_voz(robot):
-    """Escucha ordenes que empiezan con 'robot'. 'robot, menu' vuelve al menu."""
-    try:
-        oyente = voz.Oyente()
-    except voz.VozNoDisponible as exc:
-        print(f"\n   Control por voz no disponible: {exc}")
-        print("   Seguis con el menu.")
-        return
-    anunciar("Modo voz (Ctrl+C o 'robot, menu' para volver al menu)")
-    print(f"   {voz.AYUDA}")
-    decir("Te escucho. Decí robot y después la orden.")
-    esperando = False                  # dijeron solo "robot": espero la orden
-    try:
-        while True:
-            print("   🎤 Escuchando..." if not esperando else "   🎤 Esperando la orden...")
-            texto = oyente.escuchar(timeout=8 if esperando else None)
-            if texto is None:
-                esperando = False
-                continue
-            print(f"   🎤 Escuche: \"{texto}\"")
-            tenia_clave, resto = voz.quitar_palabra_clave(texto)
-            if not tenia_clave and not esperando:
-                continue               # charla del aula: no es para el robot
-            esperando = False
-            if not resto:
-                decir("¿Sí?")
-                esperando = True
-                continue
-            orden = voz.interpretar(resto)
-            if orden is None:
-                decir("No te entendí. Decí robot ayuda.")
-                continue
-            decir(orden["confirmacion"])
-            if orden["accion"] == "salir":
-                return
-            correr(robot, lambda r: ejecutar_orden(r, orden, oyente))
-    except KeyboardInterrupt:
-        robot.detenerse()
-        print("\n   Salgo del modo voz.")
 
 
 # --------------------------------------------------------------- principal
@@ -318,9 +215,6 @@ def main():
         arg = sys.argv[1].lower() if len(sys.argv) > 1 else ""
         if arg == "todo":
             correr_todo(robot)
-        elif arg == "voz":
-            modo_voz(robot)
-            menu(robot)
         elif arg.isdigit() and 1 <= int(arg) <= len(CASOS):
             correr(robot, CASOS[int(arg) - 1])        # esa opcion y despues el menu
             menu(robot)

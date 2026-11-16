@@ -341,7 +341,7 @@ class Camara:
         return elegida
 
     def jugar_ronda(self, cuenta_regresiva):
-        """Corre cuenta_regresiva() (robot + voz) mientras muestra la camara.
+        """Corre cuenta_regresiva() (robot + lo que dice) mientras muestra la camara.
 
         La ventana tiene que vivir en el hilo principal (macOS lo exige), asi
         que la cuenta regresiva del robot va en un hilo aparte.

@@ -100,8 +100,7 @@ _SINTETIZADOR = _elegir_sintetizador()
 def decir(texto):
     """Lo dice en voz alta si hay voz en castellano; si no, solo lo imprime.
 
-    Espera a terminar de hablar: asi el microfono (modo voz) no escucha al
-    propio robot.
+    Espera a terminar de hablar antes de seguir.
     """
     print(f"   🔊 {texto}")
     if _SINTETIZADOR:

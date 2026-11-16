@@ -5,16 +5,14 @@
 2. Doble clic en **INICIAR_VISITA.command**.
    - Si macOS lo bloquea ("desarrollador no identificado"): clic derecho → **Abrir** → **Abrir**.
    - O desde la Terminal: `bash INICIAR_VISITA.command`
-3. La primera vez instala MuJoCo, el control por voz y la visión por cámara
-   (unos minutos). Después abre la ventana 3D (puede quedar detrás de la
+3. La primera vez instala MuJoCo y la visión por cámara (unos minutos). Después abre la ventana 3D (puede quedar detrás de la
    Terminal) y muestra el menú de casos de uso.
-4. La primera vez que uses la voz o la cámara, macOS pide permiso para el
-   **micrófono** / la **cámara**: aceptalo para la Terminal. Si lo rechazaste:
-   Configuración del Sistema → Privacidad y seguridad → Micrófono / Cámara.
+4. La primera vez que uses la cámara, macOS pide permiso: aceptalo para la
+   Terminal. Si lo rechazaste: Configuración del Sistema → Privacidad y
+   seguridad → Cámara, activá Terminal y volvé a abrirla (Cmd+Q).
 
 ## Linux
 `bash INICIAR_VISITA.command`
-(para la voz hace falta PortAudio: `sudo apt install libportaudio2`)
 
 ## Windows
 Abrí `INICIAR_SIMULADOR.bat` (elegí G1) y después, en otra ventana:
@@ -44,32 +42,6 @@ Y además:
 
 Las figuras nuevas son cerradas: el robot termina donde empezó.
 
-## Control por voz
-Arrancá con `bash INICIAR_VISITA.command voz`.
-Decí **"robot, menú"** (o Ctrl+C) para pasar al menú.
-
-Las órdenes empiezan con **"robot"**, así una charla en el aula no lo mueve.
-Si decís solo "robot", contesta "¿Sí?" y espera la orden.
-
-| Decí… | Hace |
-|---|---|
-| robot, avanzá un metro / dos pasos / un poco | camina hacia adelante |
-| robot, retrocedé medio metro | camina hacia atrás |
-| robot, girá a la izquierda / a la derecha un poco | gira 90° (o 45°) |
-| robot, paso al costado a la derecha | se corre sin girar |
-| robot, media vuelta / vuelta entera | gira 180° / 360° |
-| robot, saludá / saludá a todos / dame la mano | gestos |
-| robot, bailá / cuadrado / curva / zigzag / ocho / festejá / presentate / chau | las coreografías |
-| robot, juguemos a piedra, papel o tijera | el juego (con cámara si hay; si no, decís tu jugada) |
-| robot, pará | se detiene |
-| robot, ayuda | dice qué sabe hacer |
-
-Por seguridad, por voz se mueve **como mucho 1 metro por orden**. Mientras
-hace un movimiento no escucha: para frenarlo en el medio, Ctrl+C.
-
-El reconocimiento funciona **sin internet** (Vosk). Solo la primera vez baja
-el modelo en español (~40 MB).
-
 ## Piedra, papel o tijera con cámara
 Mostrá la mano a la cámara. El robot dice "piedra, papel, tijera" y, al
 decir "tijera", hacé tu jugada:
@@ -79,8 +51,7 @@ decir "tijera", hacé tu jugada:
 - **Tijera**: índice y medio estirados
 
 En la ventana se ve qué detecta ("Veo: TIJERA"). `q` o `Esc` en la ventana
-termina el juego. Si no hay cámara, se juega con el teclado (o de palabra en
-el modo voz).
+termina el juego. Si no hay cámara, se juega con el teclado.
 
 Para probar solo la cámara, sin robot: `python3 mi_desarrollo/vision_ppt.py`
 
@@ -95,11 +66,10 @@ El código de la demo está en `mi_desarrollo/`:
 
 | Archivo | Para qué |
 |---|---|
-| `demo_visita.py` | El programa: menú, modo voz y casos 1 a 9 |
+| `demo_visita.py` | El programa: menú y casos 1 a 8 |
 | `habilidades.py` | Habilidades nuevas y control manual |
-| `juego_ppt.py` | Piedra, papel o tijera (teclado, cámara o voz) |
+| `juego_ppt.py` | Piedra, papel o tijera (teclado o cámara) |
 | `vision_ppt.py` | Cámara: detecta la mano con MediaPipe |
-| `voz.py` | Micrófono: entiende órdenes con Vosk |
 | `utilidades.py` | Moverse en metros/grados y hablar |
 
 El registro del simulador queda en `simulador.log`.

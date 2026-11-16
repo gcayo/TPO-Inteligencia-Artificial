@@ -1,6 +1,6 @@
-"""Piedra, papel o tijera contra el robot: con teclado, con camara o con voz.
+"""Piedra, papel o tijera contra el robot: con teclado o con camara.
 
-La ronda es la misma en los tres casos: el robot hace la cuenta regresiva
+La ronda es la misma en los dos casos: el robot hace la cuenta regresiva
 ("piedra, papel, tijera" con un vaiven por palabra), elige al azar, muestra
 las dos jugadas y reacciona: saluda si gana, da la mano si pierde y hace un
 vaiven si empatan. Lo unico que cambia es COMO se lee la jugada del alumno.
@@ -124,26 +124,4 @@ def jugar_con_camara(robot, otra_ronda=otra_por_teclado):
                 break
     finally:
         camara.cerrar()
-    decir("Gracias por jugar")
-
-
-# ---------------------------------------------------------------------- voz
-def jugar_con_voz(robot, oyente, otra_ronda):
-    """Sin camara: el alumno DICE su jugada justo despues de 'tijera'."""
-    from voz import jugada_dicha
-
-    puntos = nuevo_marcador()
-    decir("Cuando diga tijera, decí tu jugada en voz alta.")
-    while True:
-        cuenta_regresiva(robot)
-        texto = oyente.escuchar(timeout=5)
-        jugada = jugada_dicha(texto or "")
-        if jugada is None:
-            decir("No te escuché. Repetimos.")
-            if texto is None and not otra_ronda():
-                break
-            continue
-        resolver_ronda(robot, jugada, puntos)
-        if not otra_ronda():
-            break
     decir("Gracias por jugar")
