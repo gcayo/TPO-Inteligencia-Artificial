@@ -55,6 +55,12 @@ MODELO_URL = ("https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
 CACHE = Path.home() / ".cache" / "visita_g1"
 VENTANA = "Piedra, papel o tijera"
 
+# Menos mensajes tecnicos de MediaPipe/TensorFlow/OpenCV en la terminal.
+# Tiene que estar antes de importar esas librerias.
+for _var, _valor in (("GLOG_minloglevel", "2"), ("TF_CPP_MIN_LOG_LEVEL", "2"),
+                     ("OPENCV_LOG_LEVEL", "ERROR")):
+    os.environ.setdefault(_var, _valor)
+
 
 class CamaraNoDisponible(RuntimeError):
     """No se puede usar la camara (falta una libreria, permiso o dispositivo)."""
@@ -222,15 +228,35 @@ class Camara:
             raise CamaraNoDisponible(
                 f"No pude preparar el detector de manos ({exc}). La primera "
                 "vez necesita internet para bajar el modelo.") from None
-        self._cap = cv2.VideoCapture(indice)
-        ok = self._cap.isOpened() and self._cap.read()[0]
-        if not ok:
-            self._cap.release()
+        self._cap = self._abrir(cv2, indice)
+        if self._cap is None:
+            mac = sys.platform == "darwin"
             raise CamaraNoDisponible(
-                "No pude abrir la camara. Revisa que este conectada y que la "
-                "Terminal tenga permiso (macOS: Configuracion del Sistema > "
-                "Privacidad y seguridad > Camara).")
+                "No pude abrir la camara. " + (
+                    "Activa la Terminal en Configuracion del Sistema > "
+                    "Privacidad y seguridad > Camara, cerra la Terminal con "
+                    "Cmd+Q y volve a abrirla." if mac else
+                    "Revisa que este conectada y que nadie mas la este usando."))
         self._con_ventana = _hay_pantalla()
+
+    @staticmethod
+    def _abrir(cv2, indice, espera=20):
+        """Abre la camara. La primera vez macOS pide permiso y la apertura
+        falla mientras el aviso esta en pantalla: se reintenta 'espera' s."""
+        fin = time.monotonic() + espera
+        aviso = False
+        while True:
+            cap = cv2.VideoCapture(indice)
+            if cap.isOpened() and cap.read()[0]:
+                return cap
+            cap.release()
+            if time.monotonic() >= fin:
+                return None
+            if not aviso:
+                print("   Esperando la camara... si macOS pregunta, toca Permitir.",
+                      file=sys.stderr)
+                aviso = True
+            time.sleep(2)
 
     # -- dibujo
     def _dibujar(self, frame, puntos, titulo, detalle=""):
